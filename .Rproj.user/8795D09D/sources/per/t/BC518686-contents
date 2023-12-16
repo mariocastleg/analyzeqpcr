@@ -1,0 +1,11 @@
+Package: analyzeqpcr
+Type: Package
+Title: Analyzing your qPCR made easy
+Version: 0.1.0
+Author: Castillo García M, Baceiredo Macho P, Martín del Cerro C
+Maintainer: Mario Castillo García <mario.castillog@estudiante.uam.es>
+Description: Parses data from your Excel qPCR results file and gets delta Cts and delta delta Ct values for the conditions you want
+License: None
+Encoding: UTF-8
+LazyData: truedevt
+RoxygenNote: 7.2.3
