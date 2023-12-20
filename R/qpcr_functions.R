@@ -45,65 +45,77 @@ undet.ct = "Undetermined"
 #' @param control_cond A character indicating the condition to be considered as control or reference.
 #' @param hk_genes A character vector indicating the name of the housekeeping genes.
 #' @param rows A numeric vector indicating the index of the rows with samples belonging to the same experiment. By default, all rows are considered to belong to the same experiment (`1:nrow(qPCR_table)`).
-#' @param sample_name Character indicating the name of the variable that stores sample names, `"Sample Name"` by default.
-#' @param target_name Character indicating the name of the variable that stores target (gene) names, `"Target Name"` by default.
+#' @param sample Character indicating the name of the variable that stores sample names, `"Sample Name"` by default.
+#' @param target Character indicating the name of the variable that stores target (gene) names, `"Target Name"` by default.
 #' @param ct Character indicating the name of the variable that stores Ct values, `"CT"` by default.
 #' @param ct_Mean Character indicating the name of the variable that stores Ct mean values (mean of Ct values of replicates), `"Ct Mean"` by default.
 #' @param include.ct_mean A logical value indicating whether Ct mean values (mean of Ct values of replicates) are included in the `qPCR_table` data frame, `TRUE` by default.
 #' @param minus.ctrl A logical value indicating whether  ∆Ct,  ∆∆Ct, fold change and LFC are to be calculated with respect to a control or reference condition, `TRUE` by default.
-#' @param minus.mean a logical value indicating whether  ∆Ct,  ∆∆Ct, fold change and LFC are to be calculated with respect to the mean value for same genes, `TRUE` by default.
+#' @param minus.mean A logical value indicating whether  ∆Ct,  ∆∆Ct, fold change and LFC are to be calculated with respect to the mean value for same genes, `TRUE` by default.
+#' @param ct.var numeric indicating the threshold of variation coefficient of replicate Ct values above which the user is warned that Ct value variability is too high, 0.11 by default according to ThermoFisher standards
 #' @return A dataframe with ∆Ct and ∆∆Ct values according to the reference sample indicated and the average; and both fold change (2^-∆∆Ct) and LFC (log2 fold change)
 #' @export
 qPCR.results <- function(qPCR_table,
-control_cond,
-hk_genes,
-rows = 1:nrow(qPCR_table),
-sample_name =  "Sample Name",
-target_name = "Target Name",
-ct = "CT",
-ct_mean = "Ct Mean",
-include.ct_mean = TRUE,
-minus.ctrl = TRUE,
-minus.mean = TRUE){
-
+                         control_cond,
+                         hk_genes,
+                         rows = 1:nrow(qPCR_table),
+                         sample =  "Sample Name",
+                         target = "Target Name",
+                         ct = "CT",
+                         ct_mean = "Ct Mean",
+                         include.ct_mean = TRUE,
+                         minus.ctrl = TRUE,
+                         minus.mean = TRUE,
+                         ct.var = 0.11){
   if (include.ct_mean){
-    qPCR_table <- unique(qPCR_table[rows,c(sample_name, target_name, ct_mean)])
-    colnames(qPCR_table) <- c("Sample.Name", "Target.Name", "Ct.Mean")
+    qPCR_table <- unique(qPCR_table[rows,c(sample, target, ct_mean)])
+    colnames(qPCR_table) <- c("Sample", "Target", "Ct.Mean")
     qPCR_table <- droplevels(qPCR_table)
   }else{
-    qPCR_table <- qPCR_table[rows,c(sample_name, target_name, ct)]
-    colnames(qPCR_table) <- c("Sample.Name", "Target.Name", "CT")
+    qPCR_table <- qPCR_table[rows,c(sample, target, ct)]
+    colnames(qPCR_table) <- c("Sample", "Target", "CT")
+
+    standev <- aggregate(data = qPCR_table, CT ~ Sample + Target,
+                         FUN = function(x) sd(x)/mean(x))
+    colnames(standev)[3] <- "Ct.CV"
+    for (i in standev$Ct.CV){
+      if (i>=ct.var){
+        samp <- standev$Sample[which(standev$Ct.CV == i)]
+        targ <- standev$Target[which(standev$Ct.CV == i)]
+        samptarg <- paste(samp, targ, sep = "_")
+        warn <- paste("Sample ", samptarg,
+                      " CT values have high variation (CV >= ", ct.var, ").",
+                      sep = "")
+        warning(warn)
+      }
+    }
     qPCR_table <- aggregate(qPCR_table$CT ~
-                              qPCR_table$Sample.Name + qPCR_table$Target.Name,
-                            FUN = mean)
-    colnames(qPCR_table) <- c("Sample.Name", "Target.Name", "Ct.Mean")
+                              qPCR_table$Sample + qPCR_table$Target, FUN = mean)
+    colnames(qPCR_table) <- c("Sample", "Target", "Ct.Mean")
     qPCR_table <- droplevels(qPCR_table)
   }
 
   deltact<-function(ct_mean){
-    condition_control <- qPCR_table$Sample.Name == control_cond
-    target_control <- qPCR_table$Target.Name ==
-      qPCR_table$Target.Name[which(qPCR_table$Ct.Mean == ct_mean)]
-    dct <- (ct_mean) - (qPCR_table$Ct.Mean[which(condition_control &
-                                                   target_control)])
+    condition_control <- qPCR_table$Sample == control_cond
+    target_control <- qPCR_table$Target ==
+      qPCR_table$Target[which(qPCR_table$Ct.Mean == ct_mean)]
+    dct <- (ct_mean)-(qPCR_table$Ct.Mean[which(condition_control & target_control)])
     return(dct)
   }
 
-  table <- aggregate(data = qPCR_table, Ct.Mean ~ Sample.Name + Target.Name,
-                     FUN = deltact)
-  colnames(table) <- c("Sample.Name", "Target.Name", "dCt_ctrl")
+  table <- aggregate(data = qPCR_table, Ct.Mean ~ Sample + Target, FUN = deltact)
+  colnames(table) <- c("Sample", "Target", "dCt_ctrl")
   table <- merge(qPCR_table, table)
 
-  table <- table[order(table$Target.Name, table$Sample.Name),]
-  average_ct <- tapply(table$Ct.Mean, INDEX = table$Target.Name, FUN = mean)
-  average_ct <- rep(average_ct, each = length(levels(table$Sample.Name)))
+  table <- table[order(table$Target, table$Sample),]
+  average_ct <- tapply(table$Ct.Mean, INDEX = table$Target, FUN = mean)
+  average_ct <- rep(average_ct, each = length(levels(table$Sample)))
   table$dCt_mean <- table$Ct.Mean - average_ct
 
   table <- table[order(table$Sample),]
-  hk_table <- table[which(table$Target.Name %in% hk_genes),]
-  hk_averages <- tapply(hk_table$dCt_mean, INDEX = hk_table$Sample.Name,
-                        FUN = mean)
-  hk_averages <- rep(hk_averages, each = length(levels(table$Target.Name)))
+  hk_table <- table[which(table$Target %in% hk_genes),]
+  hk_averages <- tapply(hk_table$dCt_mean, INDEX = hk_table$Sample, FUN = mean)
+  hk_averages <- rep(hk_averages, each = length(levels(table$Target)))
   table$ddCt_ctrl <- table$dCt_ctrl - hk_averages
   table$ddCt_mean <- table$dCt_mean - hk_averages
   table$Fold.Change_ctrl <- 2^(-table$ddCt_ctrl)
@@ -120,10 +132,11 @@ minus.mean = TRUE){
       table <- table[,!(names(table) %in% eliminate)]
     }else if(!minus.mean){
       eliminate <- c("dCt_mean", "ddCt_mean", "Fold.Change_mean", "LFC_mean")
-      table <- table[-which(table$Sample.Name == control_cond),
+      table <- table[-which(table$Sample == control_cond),
                      !(names(table) %in% eliminate)]
     }
   }
   return(table)
 }
+
 #'

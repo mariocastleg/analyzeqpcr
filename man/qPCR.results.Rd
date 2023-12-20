@@ -9,13 +9,14 @@ qPCR.results(
   control_cond,
   hk_genes,
   rows = 1:nrow(qPCR_table),
-  sample_name = "Sample Name",
-  target_name = "Target Name",
+  sample = "Sample Name",
+  target = "Target Name",
   ct = "CT",
   ct_mean = "Ct Mean",
   include.ct_mean = TRUE,
   minus.ctrl = TRUE,
-  minus.mean = TRUE
+  minus.mean = TRUE,
+  ct.var = 0.11
 )
 }
 \arguments{
@@ -27,9 +28,9 @@ qPCR.results(
 
 \item{rows}{A numeric vector indicating the index of the rows with samples belonging to the same experiment. By default, all rows are considered to belong to the same experiment (`1:nrow(qPCR_table)`).}
 
-\item{sample_name}{Character indicating the name of the variable that stores sample names, `"Sample Name"` by default.}
+\item{sample}{Character indicating the name of the variable that stores sample names, `"Sample Name"` by default.}
 
-\item{target_name}{Character indicating the name of the variable that stores target (gene) names, `"Target Name"` by default.}
+\item{target}{Character indicating the name of the variable that stores target (gene) names, `"Target Name"` by default.}
 
 \item{ct}{Character indicating the name of the variable that stores Ct values, `"CT"` by default.}
 
@@ -37,7 +38,9 @@ qPCR.results(
 
 \item{minus.ctrl}{A logical value indicating whether  ∆Ct,  ∆∆Ct, fold change and LFC are to be calculated with respect to a control or reference condition, `TRUE` by default.}
 
-\item{minus.mean}{a logical value indicating whether  ∆Ct,  ∆∆Ct, fold change and LFC are to be calculated with respect to the mean value for same genes, `TRUE` by default.}
+\item{minus.mean}{A logical value indicating whether  ∆Ct,  ∆∆Ct, fold change and LFC are to be calculated with respect to the mean value for same genes, `TRUE` by default.}
+
+\item{ct.var}{numeric indicating the threshold of variation coefficient of replicate Ct values above which the user is warned that Ct value variability is too high, 0.11 by default according to ThermoFisher standards}
 
 \item{ct_Mean}{Character indicating the name of the variable that stores Ct mean values (mean of Ct values of replicates), `"Ct Mean"` by default.}
 }
