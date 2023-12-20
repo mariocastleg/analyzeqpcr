@@ -34,6 +34,8 @@ qPCR.results(
 
 \item{ct}{Character indicating the name of the variable that stores Ct values, `"CT"` by default.}
 
+\item{ct_mean}{Character indicating the name of the variable that stores Ct mean values (mean of Ct values of replicates), `"Ct Mean"` by default.}
+
 \item{include.ct_mean}{A logical value indicating whether Ct mean values (mean of Ct values of replicates) are included in the `qPCR_table` data frame, `TRUE` by default.}
 
 \item{minus.ctrl}{A logical value indicating whether  ∆Ct,  ∆∆Ct, fold change and LFC are to be calculated with respect to a control or reference condition, `TRUE` by default.}
@@ -41,8 +43,6 @@ qPCR.results(
 \item{minus.mean}{A logical value indicating whether  ∆Ct,  ∆∆Ct, fold change and LFC are to be calculated with respect to the mean value for same genes, `TRUE` by default.}
 
 \item{ct.var}{numeric indicating the threshold of variation coefficient of replicate Ct values above which the user is warned that Ct value variability is too high, 0.11 by default according to ThermoFisher standards}
-
-\item{ct_Mean}{Character indicating the name of the variable that stores Ct mean values (mean of Ct values of replicates), `"Ct Mean"` by default.}
 }
 \value{
 A dataframe with ∆Ct and ∆∆Ct values according to the reference sample indicated and the average; and both fold change (2^-∆∆Ct) and LFC (log2 fold change)

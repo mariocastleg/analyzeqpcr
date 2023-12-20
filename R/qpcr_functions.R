@@ -48,7 +48,7 @@ undet.ct = "Undetermined"
 #' @param sample Character indicating the name of the variable that stores sample names, `"Sample Name"` by default.
 #' @param target Character indicating the name of the variable that stores target (gene) names, `"Target Name"` by default.
 #' @param ct Character indicating the name of the variable that stores Ct values, `"CT"` by default.
-#' @param ct_Mean Character indicating the name of the variable that stores Ct mean values (mean of Ct values of replicates), `"Ct Mean"` by default.
+#' @param ct_mean Character indicating the name of the variable that stores Ct mean values (mean of Ct values of replicates), `"Ct Mean"` by default.
 #' @param include.ct_mean A logical value indicating whether Ct mean values (mean of Ct values of replicates) are included in the `qPCR_table` data frame, `TRUE` by default.
 #' @param minus.ctrl A logical value indicating whether  ∆Ct,  ∆∆Ct, fold change and LFC are to be calculated with respect to a control or reference condition, `TRUE` by default.
 #' @param minus.mean A logical value indicating whether  ∆Ct,  ∆∆Ct, fold change and LFC are to be calculated with respect to the mean value for same genes, `TRUE` by default.
